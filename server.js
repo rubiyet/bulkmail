@@ -9,9 +9,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Root route
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route - serves index.html
 app.get('/', (req, res) => {
-  res.send('Welcome to the Bulk Email Tool API');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Endpoint to send bulk emails
@@ -52,7 +55,7 @@ app.post('/send-emails', async (req, res) => {
     res.status(200).json({ message: 'All emails sent successfully!' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
