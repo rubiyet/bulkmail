@@ -9,6 +9,11 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+// Root route
+app.get('/', (req, res) => {
+  res.send('Welcome to the Bulk Email Tool API');
+});
+
 // Endpoint to send bulk emails
 app.post('/send-emails', async (req, res) => {
     const { emails, subjects, body, userEmail, userPassword } = req.body;
