@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,31 +9,39 @@
         body {
             font-family: Arial, sans-serif;
         }
+
         .container {
             width: 500px;
             margin: 0 auto;
         }
+
         .form-group {
             margin-bottom: 1rem;
         }
+
         label {
             display: block;
             margin-bottom: 0.5rem;
         }
-        input, textarea {
+
+        input,
+        textarea {
             width: 100%;
             padding: 0.5rem;
             margin-bottom: 1rem;
         }
+
         button {
             padding: 0.5rem 1rem;
             background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
+            margin-right: 10px;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Bulk Email Sender</h1>
@@ -41,12 +50,12 @@
             <textarea id="emails" rows="4"></textarea>
         </div>
         <div class="form-group">
-            <label for="subjects">Subjects (comma-separated):</label>
-            <textarea id="subjects" rows="4"></textarea>
+            <label for="subjects">Subject:</label>
+            <textarea id="subjects" rows="2"></textarea>
         </div>
         <div class="form-group">
-            <label for="body">Message Body:</label>
-            <textarea id="body" rows="4"></textarea>
+            <label for="htmlTemplate">Body:</label>
+            <textarea id="htmlTemplate" rows="4"></textarea>
         </div>
         <div class="form-group">
             <label for="userEmail">Your Email:</label>
@@ -56,21 +65,37 @@
             <label for="userPassword">Your Gmail App Password:</label>
             <input type="password" id="userPassword" />
         </div>
-        <button id="sendEmailsBtn">Send Emails</button>
+        <div class="form-group">
+            <label for="attachmentType">Attachment Type:</label>
+            <select id="attachmentType">
+                <option value="">None</option>
+                <option value="pdf">PDF</option>
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+            </select>
+        </div>
+        <div>
+            <button id="sendEmailsBtn">Send Emails</button>
+            <button id="testEmailBtn">Test Email</button>
+            <button id="resetBtn">Reset</button>
+            <button id="newTabBtn">Open New Tab</button>
+        </div>
     </div>
 
     <script>
+        // Send bulk emails logic
         document.getElementById('sendEmailsBtn').addEventListener('click', async () => {
-            const emails = document.getElementById('emails').value.split(',');
-            const subjects = document.getElementById('subjects').value.split(',');
-            const body = document.getElementById('body').value;
+            const emails = document.getElementById('emails').value.split(',').map(email => email.trim());
+            const subjects = document.getElementById('subjects').value.split(',').map(subject => subject.trim()) || 'Test Subject';
+            const htmlTemplate = document.getElementById('htmlTemplate').value;
             const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
+            const attachmentType = document.getElementById('attachmentType').value; // New attachmentType
 
-            const response = await fetch('https://bulkmail-to3i.onrender.com/send-emails', {
+            const response = await fetch('http://localhost:3000/send-emails', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emails, subjects, body, userEmail, userPassword })
+                body: JSON.stringify({ emails, subjects, htmlTemplate, userEmail, userPassword, attachmentType })
             });
 
             if (response.ok) {
@@ -79,6 +104,52 @@
                 alert('Some emails failed to send.');
             }
         });
+
+
+        // Test email logic - sends a single test email
+        document.getElementById('testEmailBtn').addEventListener('click', async () => {
+            const testEmail = document.getElementById('emails').value.split(',')[0].trim(); // Sends to the first email input
+            const subject = document.getElementById('subjects').value || 'Test Subject';
+            const htmlTemplate = document.getElementById('htmlTemplate').value; // Added htmlTemplate
+            const userEmail = document.getElementById('userEmail').value;
+            const userPassword = document.getElementById('userPassword').value;
+
+            const response = await fetch('http://localhost:3000/send-emails', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emails: [testEmail], subjects: [subject], htmlTemplate, userEmail, userPassword })
+            });
+
+            if (response.ok) {
+                alert('Test email sent successfully!');
+            } else {
+                alert('Test email failed to send.');
+            }
+        });
+
+
+        // Reset logic - clears the input fields
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('emails').value = 'mycontact688@gmail.com, rfadi9980@gmail.com, rfadi99980@gmail.com';
+            document.getElementById('subjects').value = 'Hello, $email. Your random ID is $id and your random number is $num. Your name is $name.';
+            document.getElementById('htmlTemplate').value = '<p>Hello, <b>$email</b>. Your random ID is <b>$id</b> and your random number is <b>$num</b>. Your name is <b>$name</b>.</p>';
+            document.getElementById('userEmail').value = 'rubiyetfardous@gmail.com';
+            document.getElementById('userPassword').value = 'yzac njml pqjd aibq';
+        });
+
+        // Open a new tab with the same form
+        document.getElementById('newTabBtn').addEventListener('click', () => {
+            const newTab = window.open(window.location.href, '_blank');
+            newTab.focus();
+        });
+
+
+        // Open a new tab with the same form
+        document.getElementById('newTabBtn').addEventListener('click', () => {
+            const newTab = window.open(window.location.href, '_blank');
+            newTab.focus();
+        });
     </script>
 </body>
+
 </html>
