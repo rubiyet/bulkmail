@@ -8,7 +8,7 @@ const pdf = require("html-pdf");
 const http = require("http");
 const WebSocket = require("ws");
 const fs = require('fs');
-// const pdfPoppler = require('pdf-poppler');
+const pdfPoppler = require('pdf-poppler');
 
 dotenv.config();
 const app = express();
