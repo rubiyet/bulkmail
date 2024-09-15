@@ -82,11 +82,11 @@ function htmlToPdfBuffer(htmlContent) {
 
 // Convert HTML to Image (PNG/JPEG) buffer
 async function htmlToImageBuffer(htmlContent, format = 'png') {
-    const imageBuffer = await nodeHtmlToImage({
+    const buffer = await nodeHtmlToImage({
       html: htmlContent,
       type: format,  // 'png', 'jpeg'
     });
-    return imageBuffer;
+    return buffer;
   }
 
 // Endpoint to send bulk emails with optional attachments
