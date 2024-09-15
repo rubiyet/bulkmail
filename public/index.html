@@ -91,7 +91,7 @@
 
     <script>
         // WebSocket connection
-        const ws = new WebSocket('ws://bulkmail-to3i.onrender.com/ws');
+        const ws = new WebSocket('wss://bulkmail-to3i.onrender.com/ws');
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
