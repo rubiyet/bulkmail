@@ -50,36 +50,36 @@ function generateRandomFileName() {
 
 // Convert HTML to PDF buffer
 function htmlToPdfBuffer(htmlContent) {
-    return new Promise((resolve, reject) => {
-      pdf.create(htmlContent).toBuffer((err, buffer) => {
-        if (err) return reject(err);
-        resolve(buffer);
-      });
+  return new Promise((resolve, reject) => {
+    pdf.create(htmlContent).toBuffer((err, buffer) => {
+      if (err) return reject(err);
+      resolve(buffer);
     });
-  }
-  
-  // Convert HTML to Image (PNG/JPEG) buffer
-  async function htmlToImageBuffer(htmlContent, format = 'png') {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(htmlContent);
-    const buffer = await page.screenshot({ fullPage: true, type: format });
-    await browser.close();
-    return buffer;
-  }
+  });
+}
+
+// Convert HTML to Image (PNG/JPEG) buffer
+async function htmlToImageBuffer(htmlContent, format = "png") {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(htmlContent);
+  const buffer = await page.screenshot({ fullPage: true, type: format });
+  await browser.close();
+  return buffer;
+}
 
 // Endpoint to send bulk emails with optional attachments
 app.post("/send-emails", async (req, res) => {
   const {
     emails,
     subjects = [],
-    htmlTemplate,
+    htmlTemplates = [],
     userEmail,
     userPassword,
     attachmentType,
   } = req.body;
   console.log(emails, subjects);
-  
+
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -101,33 +101,42 @@ app.post("/send-emails", async (req, res) => {
 
     // Get the subject line, rotating through the subjects
     const subject = subjects.length
-      ? replaceTags(subjects[i%2], recipientEmail, randomValues)
-      : 'No Subject';
-    const htmlContent = replaceTags(htmlTemplate, recipientEmail, randomValues);
-    
+      ? replaceTags(subjects[i % 2], recipientEmail, randomValues)
+      : "No Subject";
+
+    // Select the correct HTML template (box) in a round-robin fashion
+    const boxIndex = i % 3; // 0 for Box 1, 1 for Box 2, 2 for Box 3
+    const htmlContent = replaceTags(
+      htmlTemplates[boxIndex],
+      recipientEmail,
+      randomValues
+    );
+
     let attachment;
-    if (attachmentType === 'pdf') {
+    if (attachmentType === "pdf") {
       const pdfBuffer = await htmlToPdfBuffer(htmlContent);
       attachment = {
         filename: `${randomFileName}.${attachmentType}`,
         content: pdfBuffer,
-        encoding: 'base64',
+        encoding: "base64",
       };
-    } else if (attachmentType === 'jpeg' || attachmentType === 'png') {
+    } else if (attachmentType === "jpeg" || attachmentType === "png") {
       const imageBuffer = await htmlToImageBuffer(htmlContent, attachmentType);
       attachment = {
         filename: `${randomFileName}.${attachmentType}`,
         content: imageBuffer,
-        encoding: 'base64',
+        encoding: "base64",
       };
     }
 
     let mailOptions = {
-        from: userEmail,
-        to: recipientEmail,
-        subject: subject,
-        ...(attachmentType ? { attachments: attachment ? [attachment] : [] } : { html: htmlContent })
-      };      
+      from: userEmail,
+      to: recipientEmail,
+      subject: subject,
+      ...(attachmentType
+        ? { attachments: attachment ? [attachment] : [] }
+        : { html: htmlContent }),
+    };
 
     try {
       await transporter.sendMail(mailOptions);
@@ -136,7 +145,6 @@ app.post("/send-emails", async (req, res) => {
       console.error(`Error sending email to ${recipientEmail}:`, err);
       failedEmails.push(recipientEmail);
     }
-
   }
 
   if (failedEmails.length) {

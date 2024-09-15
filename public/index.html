@@ -53,10 +53,15 @@
             <label for="subjects">Subject:</label>
             <textarea id="subjects" rows="2"></textarea>
         </div>
-        <div class="form-group">
-            <label for="htmlTemplate">Body:</label>
-            <textarea id="htmlTemplate" rows="4"></textarea>
-        </div>
+        <!-- HTML Templates -->
+        <label for="box1">Box 1 (Email Body):</label>
+        <textarea id="box1" name="box1" rows="4" placeholder="HTML content for Box 1"></textarea>
+
+        <label for="box2">Box 2 (Email Body):</label>
+        <textarea id="box2" name="box2" rows="4" placeholder="HTML content for Box 2"></textarea>
+
+        <label for="box3">Box 3 (Email Body):</label>
+        <textarea id="box3" name="box3" rows="4" placeholder="HTML content for Box 3"></textarea>
         <div class="form-group">
             <label for="userEmail">Your Email:</label>
             <input type="text" id="userEmail" />
@@ -85,17 +90,18 @@
     <script>
         // Send bulk emails logic
         document.getElementById('sendEmailsBtn').addEventListener('click', async () => {
-            const emails = document.getElementById('emails').value.split(',').map(email => email.trim());
-            const subjects = document.getElementById('subjects').value.split(',').map(subject => subject.trim()) || 'Test Subject';
-            const htmlTemplate = document.getElementById('htmlTemplate').value;
-            const userEmail = document.getElementById('userEmail').value;
+            const emails = document.getElementById('emails').value.split('\n').map(email => email.trim());
+            const subjects = document.getElementById('subjects').value.split('\n').map(subject => subject.trim()) || 'Test Subject';
+            const box1 = document.getElementById('box1').value;
+            const box2 = document.getElementById('box2').value;
+            const box3 = document.getElementById('box3').value; const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
             const attachmentType = document.getElementById('attachmentType').value; // New attachmentType
 
             const response = await fetch('http://localhost:3000/send-emails', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emails, subjects, htmlTemplate, userEmail, userPassword, attachmentType })
+                body: JSON.stringify({ emails, subjects, htmlTemplates: [box1, box2, box3], userEmail, userPassword, attachmentType })
             });
 
             if (response.ok) {
@@ -110,14 +116,14 @@
         document.getElementById('testEmailBtn').addEventListener('click', async () => {
             const testEmail = document.getElementById('emails').value.split(',')[0].trim(); // Sends to the first email input
             const subject = document.getElementById('subjects').value || 'Test Subject';
-            const htmlTemplate = document.getElementById('htmlTemplate').value; // Added htmlTemplate
+            const box1 = document.getElementById('box1').value;
             const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
 
             const response = await fetch('http://localhost:3000/send-emails', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emails: [testEmail], subjects: [subject], htmlTemplate, userEmail, userPassword })
+                body: JSON.stringify({ emails: [testEmail], subjects: [subject], htmlTemplates: [box1, box2, box3], userEmail, userPassword })
             });
 
             if (response.ok) {
@@ -130,9 +136,11 @@
 
         // Reset logic - clears the input fields
         document.getElementById('resetBtn').addEventListener('click', () => {
-            document.getElementById('emails').value = 'mycontact688@gmail.com, rfadi9980@gmail.com, rfadi99980@gmail.com';
-            document.getElementById('subjects').value = 'Hello, $email. Your random ID is $id and your random number is $num. Your name is $name.';
-            document.getElementById('htmlTemplate').value = '<p>Hello, <b>$email</b>. Your random ID is <b>$id</b> and your random number is <b>$num</b>. Your name is <b>$name</b>.</p>';
+            document.getElementById('emails').value = 'mycontact688@gmail.com\nrfadi9980@gmail.com\nrfadi99980@gmail.com\napurbajyotisaha@gmail.com\ndibyajyotisaha12345@gmail.com';
+            document.getElementById('subjects').value = 'Hello, $email. Your random ID is $id and your random number is $num. Your name is $name.\nHi, $email. Your random ID is $id and your random number is $num. Your name is $name';
+            document.getElementById('box1').value = '<p>Hello, <b>$email</b>. 1 Your random ID is <b>$id</b> and your random number is <b>$num</b>. Your name is <b>$name</b>.</p>';
+            document.getElementById('box2').value = '<p>Hello, <b>$email</b>. 2 Your random ID is <b>$id</b> and your random number is <b>$num</b>. Your name is <b>$name</b>.</p>';
+            document.getElementById('box3').value = '<p>Hello, <b>$email</b>. 3 Your random ID is <b>$id</b> and your random number is <b>$num</b>. Your name is <b>$name</b>.</p>';
             document.getElementById('userEmail').value = 'rubiyetfardous@gmail.com';
             document.getElementById('userPassword').value = 'yzac njml pqjd aibq';
         });
