@@ -5,12 +5,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 const pdf = require("html-pdf");
-const puppeteer = require("puppeteer");
 const http = require("http");
 const WebSocket = require("ws");
-const { createCanvas } = require('canvas');
-const { PDFDocument } = require('pdf-lib');
-const sharp = require('sharp');
 const fs = require('fs');
 const pdfPoppler = require('pdf-poppler');
 
