@@ -97,7 +97,7 @@
             const data = JSON.parse(event.data);
             if (data.sentCount !== undefined) {
                 const sentCountElement = document.getElementById('sentCount');
-                sentCountElement.innerHTML = `Sent Count: ${data.sentCount}`;
+                sentCountElement.innerHTML = `Sent Count: ${data.sentCount} of ${document.getElementById('emails').value.split('\n').map(email => email.trim()).length}`;
             }
         };
         // Send bulk emails logic
@@ -109,7 +109,9 @@
             const box3 = document.getElementById('box3').value; const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
             const attachmentType = document.getElementById('attachmentType').value; // New attachmentType
-            document.getElementById('sentCount').style.cssText = 'background-color: cadetblue; padding: 0.5rem 1rem; margin-right: 10px; display: block;'; // New attachmentType
+            const sentCountElement = document.getElementById('sentCount');
+            sentCountElement.innerHTML = `Sent Count: 0 of ${document.getElementById('emails').value.split('\n').map(email => email.trim()).length}`;
+            sentCountElement.style.cssText = 'background-color: cadetblue; padding: 0.5rem 1rem; margin-right: 10px; display: block;'; // New attachmentType
 
 
             const response = await fetch('http://localhost:3000/send-emails', {
