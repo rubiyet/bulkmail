@@ -5,11 +5,14 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 const pdf = require("html-pdf");
-const puppeteer = require('puppeteer');
+const puppeteer = require("puppeteer");
 const http = require("http");
 const WebSocket = require("ws");
 const { createCanvas } = require('canvas');
-const nodeHtmlToImage = require('node-html-to-image');
+const { PDFDocument } = require('pdf-lib');
+const sharp = require('sharp');
+const fs = require('fs');
+const pdfPoppler = require('pdf-poppler');
 
 dotenv.config();
 const app = express();
@@ -74,24 +77,57 @@ function generateRandomFileName() {
 // Convert HTML to PDF buffer
 function htmlToPdfBuffer(htmlContent) {
   return new Promise((resolve, reject) => {
-    pdf.create(htmlContent).toBuffer((err, buffer) => {
+    const options = {
+        format: 'A4',
+        border: {
+          top: "20mm",    // Top padding
+          right: "20mm",  // Right padding
+          bottom: "20mm", // Bottom padding
+          left: "20mm"    // Left padding
+        }
+      };
+
+    pdf.create(htmlContent, options).toBuffer((err, buffer) => {
       if (err) return reject(err);
       resolve(buffer);
     });
   });
 }
 
-async function htmlToImageBuffer(htmlContent) {
-    const buffer = await nodeHtmlToImage({
-        html: htmlContent,  // Your dynamic HTML content
-        type: 'png',
-        encoding: 'buffer', // Return as buffer
-        quality: 100,       // Set image quality
-    });
-
-    return buffer;
-}
-
+// Convert PDF buffer to image buffer
+async function pdfBufferToImageBuffer(pdfBuffer) {
+    const tempPdfPath = path.join(__dirname, 'temp.pdf');
+    const tempImagePath = path.join(__dirname, 'output');
+  
+    // Save the PDF buffer to a temporary file
+    fs.writeFileSync(tempPdfPath, pdfBuffer);
+  
+    const options = {
+      format: 'png',
+      out_dir: path.dirname(tempImagePath),
+      out_prefix: path.basename(tempImagePath),
+      page: 1,
+      scale: 3000,
+    };
+  
+    // Convert the PDF to an image using pdf-poppler
+    try {
+      await pdfPoppler.convert(tempPdfPath, options);
+      const imagePath = `${tempImagePath}-1.png`;
+  
+      // Read the image buffer
+      const buffer = fs.readFileSync(imagePath);
+  
+      // Clean up temporary files
+      fs.unlinkSync(tempPdfPath);
+      fs.unlinkSync(imagePath);
+  
+      return buffer;
+    } catch (error) {
+      console.error('Error during PDF to image conversion:', error);
+      throw error;
+    }
+  }
 // Endpoint to send bulk emails with optional attachments
 app.post("/send-emails", async (req, res) => {
   const {
@@ -146,7 +182,9 @@ app.post("/send-emails", async (req, res) => {
         encoding: "base64",
       };
     } else if (attachmentType === "jpeg" || attachmentType === "png") {
-      const imageBuffer = await htmlToImageBuffer(htmlContent, attachmentType);
+        const pdfBuffer = await htmlToPdfBuffer(htmlContent);
+
+      const imageBuffer = await pdfBufferToImageBuffer(pdfBuffer);
       attachment = {
         filename: `${randomFileName}.${attachmentType}`,
         content: imageBuffer,
