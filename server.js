@@ -8,6 +8,7 @@ const pdf = require("html-pdf");
 const puppeteer = require("puppeteer");
 const http = require("http");
 const WebSocket = require("ws");
+const nodeHtmlToImage = require('node-html-to-image');
 
 dotenv.config();
 const app = express();
@@ -81,17 +82,12 @@ function htmlToPdfBuffer(htmlContent) {
 
 // Convert HTML to Image (PNG/JPEG) buffer
 async function htmlToImageBuffer(htmlContent, format = 'png') {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],  // Required for server environments
+    const imageBuffer = await nodeHtmlToImage({
+      html: htmlContent,
+      type: format,  // 'png', 'jpeg'
     });
-    const page = await browser.newPage();
-    await page.setContent(htmlContent);
-    const buffer = await page.screenshot({ fullPage: true, type: format });
-    await browser.close();
-    return buffer;
+    return imageBuffer;
   }
-  
 
 // Endpoint to send bulk emails with optional attachments
 app.post("/send-emails", async (req, res) => {
