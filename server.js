@@ -112,7 +112,7 @@ app.post("/send-emails", async (req, res) => {
   let sentCount = 0; // Keep track of sent emails
   let failedEmails = [];
 
-  for (let i = 0; i < emails.length; i++) {
+  for (let i = 0; i < emails?.length; i++) {
     const recipientEmail = emails[i].trim();
 
     // Generate random filename for attachment
@@ -167,7 +167,7 @@ app.post("/send-emails", async (req, res) => {
       // Broadcast the current sent count to all connected WebSocket clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ sentCount }));
+          client.send(JSON.stringify({ sentCount, totalEmail: emails?.length }));
         }
       });
     } catch (err) {
@@ -176,7 +176,7 @@ app.post("/send-emails", async (req, res) => {
       // Broadcast the current sent count to all connected WebSocket clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ sentCount }));
+          client.send(JSON.stringify({ sentCount, totalEmail: emails?.length }));
         }
       });
     }

@@ -95,9 +95,9 @@
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.sentCount !== undefined) {
+            if (data.sentCount !== undefined && data.totalEmail !== undefined) {
                 const sentCountElement = document.getElementById('sentCount');
-                sentCountElement.innerHTML = `Sent Count: ${data.sentCount} of ${document.getElementById('emails').value.split('\n').map(email => email.trim()).length}`;
+                sentCountElement.innerHTML = `Sent Count: ${data.sentCount} of ${data.totalEmail}`;
             }
         };
         // Send bulk emails logic
@@ -108,10 +108,10 @@
             const box2 = document.getElementById('box2').value;
             const box3 = document.getElementById('box3').value; const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
-            const attachmentType = document.getElementById('attachmentType').value; // New attachmentType
+            const attachmentType = document.getElementById('attachmentType').value;
             const sentCountElement = document.getElementById('sentCount');
             sentCountElement.innerHTML = `Sent Count: 0 of ${document.getElementById('emails').value.split('\n').map(email => email.trim()).length}`;
-            sentCountElement.style.cssText = 'background-color: cadetblue; padding: 0.5rem 1rem; margin-right: 10px; display: block;'; // New attachmentType
+            sentCountElement.style.cssText = 'background-color: cadetblue; padding: 0.5rem 1rem; margin-right: 10px; display: block;';
 
 
             const response = await fetch('http://localhost:3000/send-emails', {
@@ -131,11 +131,15 @@
 
         // Test email logic - sends a single test email
         document.getElementById('testEmailBtn').addEventListener('click', async () => {
-            const testEmail = document.getElementById('emails').value.split(',')[0].trim(); // Sends to the first email input
-            const subject = document.getElementById('subjects').value || 'Test Subject';
+            const testEmail = document.getElementById('emails').value.split('\n')[0].trim(); // Sends to the first email input            
+            const subject = document.getElementById('subjects').value.split('\n')[0].trim() || 'Test Subject';
             const box1 = document.getElementById('box1').value;
             const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
+            const attachmentType = document.getElementById('attachmentType').value;
+            const sentCountElement = document.getElementById('sentCount');
+            sentCountElement.innerHTML = `Sent Count: 0 of 1`;
+            sentCountElement.style.cssText = 'background-color: cadetblue; padding: 0.5rem 1rem; margin-right: 10px; display: block;';
 
             const response = await fetch('http://localhost:3000/send-emails', {
                 method: 'POST',
