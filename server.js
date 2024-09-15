@@ -8,7 +8,7 @@ const pdf = require("html-pdf");
 const puppeteer = require("puppeteer");
 const http = require("http");
 const WebSocket = require("ws");
-const nodeHtmlToImage = require('node-html-to-image');
+const { createCanvas } = require('canvas');
 
 dotenv.config();
 const app = express();
@@ -80,12 +80,25 @@ function htmlToPdfBuffer(htmlContent) {
   });
 }
 
-// Convert HTML to Image (PNG/JPEG) buffer
-async function htmlToImageBuffer(htmlContent, format = 'png') {
-    const buffer = await nodeHtmlToImage({
-      html: htmlContent,
-      type: format,  // 'png', 'jpeg'
-    });
+async function htmlToImageBuffer(htmlContent) {
+    const width = 800; // Set desired width
+    const height = 600; // Set desired height
+  
+    // Create a canvas
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+  
+    // Example: draw simple text (You'd have to parse and render HTML manually)
+    context.fillStyle = '#ffffff'; // Background color
+    context.fillRect(0, 0, width, height); // Fill background
+  
+    context.fillStyle = '#000000'; // Text color
+    context.font = '30px Arial';
+    context.fillText('Rendered HTML Content', 50, 50); // Example text
+  
+    // Convert to image buffer
+    const buffer = canvas.toBuffer('image/png');
+  
     return buffer;
   }
 
