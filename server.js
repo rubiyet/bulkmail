@@ -5,7 +5,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 const pdf = require("html-pdf");
-const puppeteer = require("puppeteer");
+const puppeteer = require('puppeteer');
 const http = require("http");
 const WebSocket = require("ws");
 const { createCanvas } = require('canvas');
@@ -81,26 +81,22 @@ function htmlToPdfBuffer(htmlContent) {
 }
 
 async function htmlToImageBuffer(htmlContent) {
-    const width = 800; // Set desired width
-    const height = 600; // Set desired height
-  
-    // Create a canvas
-    const canvas = createCanvas(width, height);
-    const context = canvas.getContext('2d');
-  
-    // Example: draw simple text (You'd have to parse and render HTML manually)
-    context.fillStyle = '#ffffff'; // Background color
-    context.fillRect(0, 0, width, height); // Fill background
-  
-    context.fillStyle = '#000000'; // Text color
-    context.font = '30px Arial';
-    context.fillText('Rendered HTML Content', 50, 50); // Example text
-  
-    // Convert to image buffer
-    const buffer = canvas.toBuffer('image/png');
-  
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    // Set the content of the page to your HTML string
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+    // Set the viewport to your desired image dimensions
+    await page.setViewport({ width: 800, height: 600 });
+
+    // Take a screenshot of the rendered HTML
+    const buffer = await page.screenshot({ type: 'png' });
+
+    await browser.close();
+
     return buffer;
-  }
+}
 
 // Endpoint to send bulk emails with optional attachments
 app.post("/send-emails", async (req, res) => {

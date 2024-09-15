@@ -178,7 +178,7 @@
                     const response = await fetch('https://bulkmail-to3i.onrender.com/send-emails', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ emails: [testEmail], subjects: [subject], htmlTemplates, userEmail, userPassword })
+                        body: JSON.stringify({ emails: [testEmail], subjects: [subject], htmlTemplates, userEmail, userPassword, attachmentType })
                     });
                     if (response.ok) {
                         const result = await response.json();
@@ -219,13 +219,6 @@
             document.getElementById('userPassword').value = '';
             document.getElementById('sentCount').style.cssText = 'display: none;';
         });
-
-        // Open a new tab with the same form
-        document.getElementById('newTabBtn').addEventListener('click', () => {
-            const newTab = window.open(window.location.href, '_blank');
-            newTab.focus();
-        });
-
 
         // Open a new tab with the same form
         document.getElementById('newTabBtn').addEventListener('click', () => {
