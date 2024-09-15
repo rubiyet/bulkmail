@@ -9,6 +9,7 @@ const puppeteer = require('puppeteer');
 const http = require("http");
 const WebSocket = require("ws");
 const { createCanvas } = require('canvas');
+const nodeHtmlToImage = require('node-html-to-image');
 
 dotenv.config();
 const app = express();
@@ -81,19 +82,12 @@ function htmlToPdfBuffer(htmlContent) {
 }
 
 async function htmlToImageBuffer(htmlContent) {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-
-    // Set the content of the page to your HTML string
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-    // Set the viewport to your desired image dimensions
-    await page.setViewport({ width: 800, height: 600 });
-
-    // Take a screenshot of the rendered HTML
-    const buffer = await page.screenshot({ type: 'png' });
-
-    await browser.close();
+    const buffer = await nodeHtmlToImage({
+        html: htmlContent,  // Your dynamic HTML content
+        type: 'png',
+        encoding: 'buffer', // Return as buffer
+        quality: 100,       // Set image quality
+    });
 
     return buffer;
 }
