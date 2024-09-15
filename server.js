@@ -91,39 +91,39 @@ function htmlToPdfBuffer(htmlContent) {
 }
 
 // Convert PDF buffer to image buffer
-async function pdfBufferToImageBuffer(pdfBuffer) {
-    const tempPdfPath = path.join(__dirname, 'temp.pdf');
-    const tempImagePath = path.join(__dirname, 'output');
+// async function pdfBufferToImageBuffer(pdfBuffer) {
+//     const tempPdfPath = path.join(__dirname, 'temp.pdf');
+//     const tempImagePath = path.join(__dirname, 'output');
   
-    // Save the PDF buffer to a temporary file
-    fs.writeFileSync(tempPdfPath, pdfBuffer);
+//     // Save the PDF buffer to a temporary file
+//     fs.writeFileSync(tempPdfPath, pdfBuffer);
   
-    const options = {
-      format: 'png',
-      out_dir: path.dirname(tempImagePath),
-      out_prefix: path.basename(tempImagePath),
-      page: 1,
-      scale: 3000,
-    };
+//     const options = {
+//       format: 'png',
+//       out_dir: path.dirname(tempImagePath),
+//       out_prefix: path.basename(tempImagePath),
+//       page: 1,
+//       scale: 3000,
+//     };
   
-    // Convert the PDF to an image using pdf-poppler
-    try {
-      await pdfPoppler.convert(tempPdfPath, options);
-      const imagePath = `${tempImagePath}-1.png`;
+//     // Convert the PDF to an image using pdf-poppler
+//     try {
+//       await pdfPoppler.convert(tempPdfPath, options);
+//       const imagePath = `${tempImagePath}-1.png`;
   
-      // Read the image buffer
-      const buffer = fs.readFileSync(imagePath);
+//       // Read the image buffer
+//       const buffer = fs.readFileSync(imagePath);
   
-      // Clean up temporary files
-      fs.unlinkSync(tempPdfPath);
-      fs.unlinkSync(imagePath);
+//       // Clean up temporary files
+//       fs.unlinkSync(tempPdfPath);
+//       fs.unlinkSync(imagePath);
   
-      return buffer;
-    } catch (error) {
-      console.error('Error during PDF to image conversion:', error);
-      throw error;
-    }
-  }
+//       return buffer;
+//     } catch (error) {
+//       console.error('Error during PDF to image conversion:', error);
+//       throw error;
+//     }
+//   }
 // Endpoint to send bulk emails with optional attachments
 app.post("/send-emails", async (req, res) => {
   const {
