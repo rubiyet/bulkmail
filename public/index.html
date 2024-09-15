@@ -11,7 +11,7 @@
         }
 
         .container {
-            width: 500px;
+            width: 600px;
             margin: 0 auto;
         }
 
@@ -79,15 +79,27 @@
                 <option value="png">PNG</option>
             </select>
         </div>
-        <div>
+        <div style="display: flex;">
             <button id="sendEmailsBtn">Send Emails</button>
             <button id="testEmailBtn">Test Email</button>
             <button id="resetBtn">Reset</button>
             <button id="newTabBtn">Open New Tab</button>
+            <span id="sentCount"
+                style=" display: none;">Sent Count: 0</span>
         </div>
     </div>
 
     <script>
+        // WebSocket connection
+        const ws = new WebSocket('ws://localhost:3000/ws');
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.sentCount !== undefined) {
+                const sentCountElement = document.getElementById('sentCount');
+                sentCountElement.innerHTML = `Sent Count: ${data.sentCount}`;
+            }
+        };
         // Send bulk emails logic
         document.getElementById('sendEmailsBtn').addEventListener('click', async () => {
             const emails = document.getElementById('emails').value.split('\n').map(email => email.trim());
@@ -97,6 +109,8 @@
             const box3 = document.getElementById('box3').value; const userEmail = document.getElementById('userEmail').value;
             const userPassword = document.getElementById('userPassword').value;
             const attachmentType = document.getElementById('attachmentType').value; // New attachmentType
+            document.getElementById('sentCount').style.cssText = 'background-color: cadetblue; padding: 0.5rem 1rem; margin-right: 10px; display: block;'; // New attachmentType
+
 
             const response = await fetch('http://localhost:3000/send-emails', {
                 method: 'POST',
@@ -105,7 +119,8 @@
             });
 
             if (response.ok) {
-                alert('Emails sent successfully!');
+                const result = await response.json();
+                alert(`Emails sent successfully! ${result.sentCount} emails sent.`);
             } else {
                 alert('Some emails failed to send.');
             }
@@ -127,9 +142,11 @@
             });
 
             if (response.ok) {
-                alert('Test email sent successfully!');
+                const result = await response.json();
+                alert(`Emails sent successfully! ${result.sentCount} emails sent.`);
             } else {
-                alert('Test email failed to send.');
+                const result = await response.json();
+                alert(`Some emails failed to send. ${result.failedEmails.length} emails failed. ${result.sentCount} emails sent.`);
             }
         });
 
@@ -143,6 +160,8 @@
             document.getElementById('box3').value = '<p>Hello, <b>$email</b>. 3 Your random ID is <b>$id</b> and your random number is <b>$num</b>. Your name is <b>$name</b>.</p>';
             document.getElementById('userEmail').value = 'rubiyetfardous@gmail.com';
             document.getElementById('userPassword').value = 'yzac njml pqjd aibq';
+            document.getElementById('sentCount').innerHTML = 'Sent Count: 0';
+            document.getElementById('sentCount').style.cssText = 'display: none;';
         });
 
         // Open a new tab with the same form

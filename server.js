@@ -6,12 +6,33 @@ const dotenv = require("dotenv");
 const path = require("path");
 const pdf = require("html-pdf");
 const puppeteer = require("puppeteer");
-const fs = require("fs");
+const http = require("http");
+const WebSocket = require("ws");
 
 dotenv.config();
 const app = express();
-app.use(bodyParser.json());
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server, path: "/ws" });
+
+app.use(express.json());
 app.use(cors());
+
+// WebSocket connection handler
+wss.on("connection", (ws) => {
+  console.log("Client connected");
+
+  ws.on("message", (message) => {
+    console.log(`Received message => ${message}`);
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
+
+  ws.on("error", (error) => {
+    console.error("WebSocket error:", error);
+  });
+});
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
@@ -88,6 +109,7 @@ app.post("/send-emails", async (req, res) => {
     },
   });
 
+  let sentCount = 0; // Keep track of sent emails
   let failedEmails = [];
 
   for (let i = 0; i < emails.length; i++) {
@@ -141,23 +163,40 @@ app.post("/send-emails", async (req, res) => {
     try {
       await transporter.sendMail(mailOptions);
       console.log(`Email sent to ${recipientEmail}`);
+      sentCount++; // Increment sent count
+      // Broadcast the current sent count to all connected WebSocket clients
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ sentCount }));
+        }
+      });
     } catch (err) {
       console.error(`Error sending email to ${recipientEmail}:`, err);
       failedEmails.push(recipientEmail);
+      // Broadcast the current sent count to all connected WebSocket clients
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ sentCount }));
+        }
+      });
     }
   }
 
   if (failedEmails.length) {
     return res
       .status(500)
-      .json({ message: "Some emails failed to send.", failedEmails });
+      .json({
+        message: "Some emails failed to send.",
+        failedEmails,
+        sentCount,
+      });
   }
 
-  res.status(200).json({ message: "All emails sent successfully!" });
+  res.status(200).json({ message: "All emails sent successfully!", sentCount });
 });
 
 // Serve the app
 const PORT = 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
