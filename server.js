@@ -136,11 +136,11 @@ app.post("/send-emails", async (req, res) => {
 
     // Get the subject line, rotating through the subjects
     const subject = subjects.length
-      ? replaceTags(subjects[i % 2], recipientEmail, randomValues)
+      ? replaceTags(subjects[i % subjects.length], recipientEmail, randomValues)
       : "No Subject";
 
     // Select the correct HTML template (box) in a round-robin fashion
-    const boxIndex = i % 3; // 0 for Box 1, 1 for Box 2, 2 for Box 3
+    const boxIndex = i % htmlTemplates.length; // 0 for Box 1, 1 for Box 2, 2 for Box 3
     const htmlContent = replaceTags(
       htmlTemplates[boxIndex],
       recipientEmail,
@@ -184,7 +184,7 @@ app.post("/send-emails", async (req, res) => {
         }
       });
     } catch (err) {
-      console.error(`Error sending email to ${recipientEmail}:`, err);
+    //   console.error(`Error sending email to ${recipientEmail}:`, err);
       failedEmails.push(recipientEmail);
       // Broadcast the current sent count to all connected WebSocket clients
       wss.clients.forEach((client) => {
@@ -192,6 +192,14 @@ app.post("/send-emails", async (req, res) => {
           client.send(JSON.stringify({ sentCount, totalEmail: emails?.length }));
         }
       });
+      console.log(err?.responseCode);
+      if(err?.responseCode === 535){
+      return res
+      .status(535)
+      .json({
+        message: "Username and App Password not accepted",
+      });
+    }
     }
   }
 
