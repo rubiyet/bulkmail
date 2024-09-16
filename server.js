@@ -7,8 +7,9 @@ const path = require("path");
 const pdf = require("html-pdf");
 const http = require("http");
 const WebSocket = require("ws");
-const fs = require('fs');
-const pdfPoppler = require('pdf-poppler');
+const fs = require("fs");
+const puppeteer = require('puppeteer');
+const sharp = require("sharp");
 
 dotenv.config();
 const app = express();
@@ -74,14 +75,14 @@ function generateRandomFileName() {
 function htmlToPdfBuffer(htmlContent) {
   return new Promise((resolve, reject) => {
     const options = {
-        format: 'A4',
-        border: {
-          top: "20mm",    // Top padding
-          right: "20mm",  // Right padding
-          bottom: "20mm", // Bottom padding
-          left: "20mm"    // Left padding
-        }
-      };
+      format: "A4",
+      border: {
+        top: "20mm", // Top padding
+        right: "20mm", // Right padding
+        bottom: "20mm", // Bottom padding
+        left: "20mm", // Left padding
+      },
+    };
 
     pdf.create(htmlContent, options).toBuffer((err, buffer) => {
       if (err) return reject(err);
@@ -91,39 +92,35 @@ function htmlToPdfBuffer(htmlContent) {
 }
 
 // Convert PDF buffer to image buffer
-// async function pdfBufferToImageBuffer(pdfBuffer) {
-//     const tempPdfPath = path.join(__dirname, 'temp.pdf');
-//     const tempImagePath = path.join(__dirname, 'output');
+async function htmlToImageBuffer(htmlContent, format = 'png') {
+    // Launch puppeteer browser
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
   
-//     // Save the PDF buffer to a temporary file
-//     fs.writeFileSync(tempPdfPath, pdfBuffer);
+    // Set the content of the page to the provided HTML
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
   
-//     const options = {
-//       format: 'png',
-//       out_dir: path.dirname(tempImagePath),
-//       out_prefix: path.basename(tempImagePath),
-//       page: 1,
-//       scale: 3000,
-//     };
+    // Set the viewport size to the content's dimensions
+    const dimensions = await page.evaluate(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      return {
+        width: Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth),
+        height: Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight)
+      };
+    });
   
-//     // Convert the PDF to an image using pdf-poppler
-//     try {
-//       await pdfPoppler.convert(tempPdfPath, options);
-//       const imagePath = `${tempImagePath}-1.png`;
+    // Set the viewport to the determined dimensions
+    await page.setViewport({ width: dimensions.width, height: dimensions.height });
   
-//       // Read the image buffer
-//       const buffer = fs.readFileSync(imagePath);
+    // Capture screenshot of the content
+    const screenshotBuffer = await page.screenshot({ type: format, fullPage: true });
   
-//       // Clean up temporary files
-//       fs.unlinkSync(tempPdfPath);
-//       fs.unlinkSync(imagePath);
+    // Clean up by closing the browser
+    await browser.close();
   
-//       return buffer;
-//     } catch (error) {
-//       console.error('Error during PDF to image conversion:', error);
-//       throw error;
-//     }
-//   }
+    return screenshotBuffer;
+  }
 // Endpoint to send bulk emails with optional attachments
 app.post("/send-emails", async (req, res) => {
   const {
@@ -178,9 +175,10 @@ app.post("/send-emails", async (req, res) => {
         encoding: "base64",
       };
     } else if (attachmentType === "jpeg" || attachmentType === "png") {
-        const pdfBuffer = await htmlToPdfBuffer(htmlContent);
-
-      const imageBuffer = await pdfBufferToImageBuffer(pdfBuffer);
+      const imageBuffer = await htmlToImageBuffer(
+        htmlContent,
+        attachmentType
+      ); // Pass format as 'jpeg' or 'png'
       attachment = {
         filename: `${randomFileName}.${attachmentType}`,
         content: imageBuffer,
@@ -204,37 +202,37 @@ app.post("/send-emails", async (req, res) => {
       // Broadcast the current sent count to all connected WebSocket clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ sentCount, totalEmail: emails?.length }));
+          client.send(
+            JSON.stringify({ sentCount, totalEmail: emails?.length })
+          );
         }
       });
     } catch (err) {
-    //   console.error(`Error sending email to ${recipientEmail}:`, err);
+      //   console.error(`Error sending email to ${recipientEmail}:`, err);
       failedEmails.push(recipientEmail);
       // Broadcast the current sent count to all connected WebSocket clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ sentCount, totalEmail: emails?.length }));
+          client.send(
+            JSON.stringify({ sentCount, totalEmail: emails?.length })
+          );
         }
       });
       console.log(err?.responseCode);
-      if(err?.responseCode === 535){
-      return res
-      .status(535)
-      .json({
-        message: "Username and App Password not accepted",
-      });
-    }
+      if (err?.responseCode === 535) {
+        return res.status(535).json({
+          message: "Username and App Password not accepted",
+        });
+      }
     }
   }
 
   if (failedEmails.length) {
-    return res
-      .status(500)
-      .json({
-        message: "Some emails failed to send.",
-        failedEmails,
-        sentCount,
-      });
+    return res.status(500).json({
+      message: "Some emails failed to send.",
+      failedEmails,
+      sentCount,
+    });
   }
 
   res.status(200).json({ message: "All emails sent successfully!", sentCount });
