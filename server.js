@@ -95,8 +95,8 @@ function htmlToPdfBuffer(htmlContent) {
 async function htmlToImageBuffer(htmlContent, format = 'png') {
     // Launch puppeteer browser
     const browser = await puppeteer.launch({
-        executablePath: "/usr/bin/chromium-browser",
-        args: ['--no-sandbox']
+        headless: true,
+        ignoreDefaultArgs: ['--disable-extensions'], // this made it work for now
     });
     const page = await browser.newPage();
   
