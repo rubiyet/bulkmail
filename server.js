@@ -94,7 +94,10 @@ function htmlToPdfBuffer(htmlContent) {
 // Convert PDF buffer to image buffer
 async function htmlToImageBuffer(htmlContent, format = 'png') {
     // Launch puppeteer browser
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        headless: false,
+        slowMo: 250 // slow down by 250ms
+      });
     const page = await browser.newPage();
   
     // Set the content of the page to the provided HTML
