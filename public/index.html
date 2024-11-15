@@ -45,6 +45,10 @@
 <body>
     <div class="container">
         <h1>Bulk Email Sender</h1>
+        <a href="https://docs.google.com/document/d/1CnD40e4y0sles1lNzugDd3lus77EL8W1MZwoDSnI7ac/edit?usp=sharing"
+            target="_blank">
+            <button id="resetBtn">User Manual</button>
+        </a>
         <div class="form-group">
             <label for="emails">Emails (separated by new line):</label>
             <textarea id="emails" rows="4"></textarea>
@@ -55,13 +59,13 @@
         </div>
         <!-- HTML Templates -->
         <label for="box1">Email Body (Box 1):</label>
-        <textarea id="box1" name="box1" rows="4" ></textarea>
+        <textarea id="box1" name="box1" rows="4"></textarea>
 
         <label for="box2">Email Body (Box 2):</label>
-        <textarea id="box2" name="box2" rows="4" ></textarea>
+        <textarea id="box2" name="box2" rows="4"></textarea>
 
         <label for="box3">Email Body (Box 3):</label>
-        <textarea id="box3" name="box3" rows="4" ></textarea>
+        <textarea id="box3" name="box3" rows="4"></textarea>
         <div class="form-group">
             <label for="userEmail">Your Email:</label>
             <input type="text" id="userEmail" />
@@ -106,7 +110,7 @@
             const emails = document.getElementById('emails').value.split('\n').map(email => email.trim()).filter(subject => subject !== '');
             const subjects = document.getElementById('subjects').value.split('\n').map(subject => subject.trim()).filter(subject => subject !== '');
             console.log(document.getElementById('subjects').value);
-            
+
             const box1 = document.getElementById('box1').value;
             const box2 = document.getElementById('box2').value;
             const box3 = document.getElementById('box3').value;
@@ -155,7 +159,7 @@
         // Test email logic - sends a single test email
         document.getElementById('testEmailBtn').addEventListener('click', async () => {
             document.getElementById('sentCount').style.cssText = 'display: none';
-            const testEmail = document.getElementById('emails').value.split('\n')[0].trim();            
+            const testEmail = document.getElementById('emails').value.split('\n')[0].trim();
             const subject = document.getElementById('subjects').value.split('\n')[0].trim();
             const box1 = document.getElementById('box1').value;
             const box2 = document.getElementById('box2').value;
